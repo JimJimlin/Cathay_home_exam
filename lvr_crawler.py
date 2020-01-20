@@ -1,13 +1,15 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding=UTF-8 -*-
+
 '''''''''
         @lvr_crawler.py:
-        @
-        @Usage: python lvr_crawler.py <integrity_category>
+        @Usage: python lvr_crawler.py <config>
+        @Auther: Jim
 '''''''''
 
 import requests
 import os
+import sys
 import zipfile
 import time
 import ConfigParser
@@ -31,69 +33,58 @@ def main(argv):
 
     config.read(setting.config_file)
 
-    setting.year = config.get(setting_section, 'year')
-    setting.season = config.get(setting_section, 'season')
-    setting.region = config.get(setting_section, 'region')
-    setting.type = config.get(setting_section, 'type')
-    DBDataExport(setting)
+    setting.year = list(config.get(setting_section, 'year').split(","))
+    setting.season = list(config.get(setting_section, 'season').split(","))
+    setting.region = list(config.get(setting_section, 'region').split(","))
+    setting.type = int(config.get(setting_section, 'type'))
+    # real_estate_crawler(setting)
 
-def real_estate_crawler(year, season):
-    if year > 1000:
-        year -= 1911
+    type_code = mapping(setting.type)
+    region_code = mapping(setting.region)
 
-    CuteBB = requests.get("https://plvr.land.moi.gov.tw//DownloadSeason?season=108S3&type=zip&fileName=lvr_landcsv.zip")
+    for year in setting.year:
+      for season in setting.season:
+          for region in region_code:
+              print(year, season, region, type_code)
+              real_estate_crawler(int(year), season, region, type_code)
 
-    fname = 'BB.zip'  #str(year)+str(season)+'.zip'
-    open(fname, 'wb').write(CuteBB.content)
+def real_estate_crawler(year, season, region, type_code):
 
-    folder = 'real_estate' + str(year) + str(season)
+    folder = "data"
     if not os.path.isdir(folder):
         os.mkdir(folder)
 
-    # extract files to the folder
-    with zipfile.ZipFile(fname, 'r') as zip_ref:
-        zip_ref.extractall(folder)
+    if year > 1000:
+        year -= 1911
+
+    request = ("https://plvr.land.moi.gov.tw//DownloadSeason?season={year}S{season}&fileName={region}_lvr_land_{type}.csv")\
+    .format(year=year, season=season, region=region, type=type_code)
+
+    data = requests.get(request)
+
+    fname = ("./data/{year}S{season}_{region}_lvr_land_{type}.csv").format(year=year, season=season, region=region, type=type_code)
+    file = fname
+    open(file, 'wb').write(data.content)
 
     time.sleep(10)
 
+def mapping(word):
+
+    type_pattern = ("A", "B", "C") #A = 不動產買賣,B = 預售屋買賣,C = 不動產租賃
+    region_pattern = {
+    '基隆市' : 'C', '臺北市' : 'A', '新北市' : 'F', '桃園市' : 'H',
+    '新竹市' : 'O', '新竹縣' : 'J', '苗栗縣' : 'K', '臺中市' : 'B',
+    '南投縣' : 'M', '彰化縣' : 'N', '雲林縣' : 'P', '嘉義市' : 'I',
+    '嘉義縣' : 'Q', '臺南市' : 'D', '高雄市' : 'E', '屏東縣' : 'T',
+    '宜蘭縣' : 'G', '花蓮縣' : 'U', '臺東縣' : 'V', '澎湖縣' : 'X',
+    '金門縣' : 'W', '連江縣' : 'Z'}
+
+    if type(word) == int:
+        word -=1
+        return type_pattern[word]
+    elif type(word) == list:
+        word = [ region_pattern.get(item, item) for item in word ]
+        return word
+
 if __name__ == "__main__":
     main(sys.argv[1:])
-
-# real_estate_crawler(101, 3)
-# real_estate_crawler(101, 4)
-#
-# for year in range(102, 108):
-#   for season in range(1,5):
-#     print(year, season)
-#     real_estate_crawler(year, season)
-#
-# real_estate_crawler(108, 1)
-# real_estate_crawler(108, 2)
-
-
-# A - 不動產買賣
-# B - 預售屋買賣
-# C - 不動產租賃
-
-# C - 基隆市
-# A - 臺北市
-# F - 新北市
-# H - 桃園市
-# O - 新竹市
-# J - 新竹縣
-# K - 苗栗縣
-# B - 臺中市
-# M - 南投縣
-# N - 彰化縣
-# P - 雲林縣
-# I - 嘉義市
-# Q - 嘉義縣
-# D - 臺南市
-# E - 高雄市
-# T - 屏東縣
-# G - 宜蘭縣
-# U - 花蓮縣
-# V - 臺東縣
-# X - 澎湖縣
-# W - 金門縣
-# Z - 連江縣
