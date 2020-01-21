@@ -2,19 +2,20 @@
 # -*- coding=UTF-8 -*-
 
 '''''''''
-        @lvr_crawler.py:
+        @lvr_crawler.py
         @Usage: python lvr_crawler.py <config>
         @Auther: Jim
 '''''''''
 
-import requests
 import os
 import sys
 import zipfile
 import time
-import ConfigParser
 
-config = ConfigParser.ConfigParser()
+import configparser
+import requests
+
+config = configparser.ConfigParser()
 setting_section = 'setting'
 
 class Setting:
@@ -37,12 +38,11 @@ def main(argv):
     setting.season = list(config.get(setting_section, 'season').split(","))
     setting.region = list(config.get(setting_section, 'region').split(","))
     setting.type = int(config.get(setting_section, 'type'))
-    # real_estate_crawler(setting)
 
     type_code = mapping(setting.type)
     region_code = mapping(setting.region)
 
-    for year in setting.year:
+    for year in range(int(setting.year[0]),int(setting.year[1])+1):
       for season in setting.season:
           for region in region_code:
               print(year, season, region, type_code)
@@ -66,7 +66,7 @@ def real_estate_crawler(year, season, region, type_code):
     file = fname
     open(file, 'wb').write(data.content)
 
-    time.sleep(10)
+    time.sleep(6)
 
 def mapping(word):
 
