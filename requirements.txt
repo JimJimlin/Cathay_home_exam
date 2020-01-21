@@ -17,6 +17,7 @@ modulegraph==0.10.4
 nose==1.3.7
 numpy==1.16.6
 pandas==0.24.2
+pcapy==0.11.1
 py2app==0.7.3
 pycparser==2.19
 pyobjc-core==2.5.1

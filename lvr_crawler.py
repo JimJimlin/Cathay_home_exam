@@ -18,7 +18,7 @@ import requests
 config = configparser.ConfigParser()
 setting_section = 'setting'
 
-class Setting:
+class Setting: #讀取下載資料的參數
     def __init__(self):
         self.config_file = ''
         self.year = ''
@@ -34,10 +34,10 @@ def main(argv):
 
     config.read(setting.config_file)
 
-    setting.year = list(config.get(setting_section, 'year').split(","))
-    setting.season = list(config.get(setting_section, 'season').split(","))
-    setting.region = list(config.get(setting_section, 'region').split(","))
-    setting.type = int(config.get(setting_section, 'type'))
+    setting.year = list(config.get(setting_section, 'year').split(",")) #年份
+    setting.season = list(config.get(setting_section, 'season').split(",")) #季節
+    setting.region = list(config.get(setting_section, 'region').split(",")) #地區
+    setting.type = int(config.get(setting_section, 'type')) #資料類型
 
     type_code = mapping(setting.type)
     region_code = mapping(setting.region)
@@ -62,11 +62,12 @@ def real_estate_crawler(year, season, region, type_code):
 
     data = requests.get(request)
 
+    #依照年份季節地區類類型命名資料
     fname = ("./data/{year}S{season}_{region}_lvr_land_{type}.csv").format(year=year, season=season, region=region, type=type_code)
     file = fname
     open(file, 'wb').write(data.content)
 
-    time.sleep(6)
+    time.sleep(6) #預防被當成機器人阻擋
 
 def mapping(word):
 
